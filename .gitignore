@@ -1,6 +1,6 @@
 .envrc
-./map-key-value
-./bindings
-./build
-./gen
-./wit/deps #shouldn't be any deps here, this is a provider and shoudl be self-contained
+map-key-value
+/bindings
+/build
+/gen
+/wit/deps #shouldn't be any deps here, this is a provider and shoudl be self-contained

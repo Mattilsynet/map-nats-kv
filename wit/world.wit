@@ -1,0 +1,27 @@
+package mattilsynet:map-kv;
+
+interface types {
+   record key-value-entry {
+     key: string, 
+     value: list<u8>,
+   }
+}
+interface key-value-watcher {
+    use types.{key-value-entry};
+    watch: func(key-value-entry: key-value-entry);
+    watch-all: func(key-value-entry: key-value-entry);
+}
+interface key-value {
+    use types.{key-value-entry};
+    create: func (key: string, value: list<u8>) -> result<_, string>;
+    get: func(key: string) -> result<key-value-entry, string>;
+    put: func(key: string, value: list<u8>) -> result<_, string>;
+    purge: func(key: string) -> result<_, string>;
+    delete: func(key: string) -> result<_, string>;
+    list-keys: func() -> result<list<string>, string>;
+}
+
+world kv {
+    export key-value; 
+    import key-value-watcher;
+}
