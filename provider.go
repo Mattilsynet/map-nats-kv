@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/Mattilsynet/map-providers/map-nats-kv/bindings/exports/mattilsynet/map_kv/key_value"
+	"github.com/Mattilsynet/map-nats-kv/bindings/exports/mattilsynet/map_kv/key_value"
 	"github.com/nats-io/nats.go"
 	sdk "go.wasmcloud.dev/provider"
 	wrpc "wrpc.io/go"

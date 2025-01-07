@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/wasmcloud/messaging/consumer"
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/wasmcloud/messaging/handler"
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/wasmcloud/messaging/types"
+	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/consumer"
+	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/handler"
+	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/types"
 	"github.com/bytecodealliance/wasm-tools-go/cm"
 )
 

@@ -1,4 +1,4 @@
-//go:generate wit-bindgen-wrpc go --out-dir bindings --package github.com/Mattilsynet/map-providers/map-nats-kv/bindings wit
+//go:generate wit-bindgen-wrpc go --out-dir bindings --package github.com/Mattilsynet/map-nats-kv/bindings wit
 
 package main
 
@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	server "github.com/Mattilsynet/map-providers/map-nats-kv/bindings"
+	server "github.com/Mattilsynet/map-nats-kv/bindings"
 	"go.wasmcloud.dev/provider"
 )
 

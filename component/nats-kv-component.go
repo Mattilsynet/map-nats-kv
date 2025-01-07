@@ -5,12 +5,11 @@ import (
 	"log/slog"
 	"strings"
 
-	//"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/mattilsynet/map-kv/key-value"
-	keyvalue "github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/mattilsynet/map-kv/key-value"
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/wasmcloud/messaging/consumer"
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/wasmcloud/messaging/handler"
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/gen/wasmcloud/messaging/types"
-	"github.com/Mattilsynet/map-providers/map-nats-kv/component/pkg/nats"
+	keyvalue "github.com/Mattilsynet/map-nats-kv/component/gen/mattilsynet/map-kv/key-value"
+	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/consumer"
+	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/handler"
+	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/types"
+	"github.com/Mattilsynet/map-nats-kv/component/pkg/nats"
 	"github.com/bytecodealliance/wasm-tools-go/cm"
 	"go.wasmcloud.dev/component/log/wasilog"
 )
