@@ -47,3 +47,7 @@ wash up -d
 # Deploy the application
 wash app deploy ./wadm.yaml
 ```
+
+## TODO:
+
+Add support for kv watch, wit is there but not implemented
