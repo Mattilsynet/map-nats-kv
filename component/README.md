@@ -1,6 +1,6 @@
-# Custom template test component
+# map-nats-kv test component
 
-This component is meant to test the [custom template capability provider](../) by an implementation of the interface on the component.
+This component is meant to test the [map-nats-kv](../) by an implementation of the interface on the component.
 
 ## Build
 
