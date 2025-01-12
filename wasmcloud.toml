@@ -1,9 +1,9 @@
 # NOTE: Not yet supported
-name = "map-key-value"
+name = "map-nats-kv"
 language = "go"
 type = "provider"
 version = "0.1.0"
 
 [provider]
 vendor = "wasmCloud"
-bin_name = "map-key-value"
+bin_name = "map-nats-kv"
