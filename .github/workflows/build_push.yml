@@ -41,18 +41,18 @@ jobs:
        run: |
           [[ ! -f wadm.yaml ]] || wash app validate wadm.yaml
           [[ ! -f local.wadm.yaml ]] || wash app validate local.wadm.yaml
-     # - name: wash build
-     #   shell: bash
-     #   run: |
-     #     wash build
-     # - name: publish package to github repository 
-     #   env:
-     #     WASH_REG_USER: ${{ github.repository_owner }}
-     #     WASH_REG_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-     #   shell: bash
-     #   run: |
-     #      wash push ghcr.io/${{ github.repository }}:${{ github.ref_name }} ${{ env.providername }}.par.gz --annotation org.opencontainers.image.source=${{github.server_url}}/${{ github.repository }}
-     #   working-directory: build
+     - name: wash build
+       shell: bash
+       run: |
+         wash build
+     - name: publish package to github repository 
+       env:
+         WASH_REG_USER: ${{ github.repository_owner }}
+         WASH_REG_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+       shell: bash
+       run: |
+          wash push ghcr.io/${{ github.repository }}:${{ github.ref_name }} ${{ env.providername }}.par.gz --annotation org.opencontainers.image.source=${{github.server_url}}/${{ github.repository }}
+       working-directory: build
      # - name: Create tar.gz
      #   run: |
      #     tar -czf ${{ env.providername }}.tar.gz ./build/${{ env.providername }}.par.gz 
