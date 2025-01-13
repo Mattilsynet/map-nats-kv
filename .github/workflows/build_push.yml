@@ -47,6 +47,16 @@ jobs:
         shell: bash
         run: |
           wash build
+      - name: debug
+        shell: bash
+        run: |
+          echo ghrepo ${{github.repository}}
+          echo gh_refname ${{github.ref_name}}
+          echo providername ${{env.providername}}
+          ls build/
+          echo echo user ${{github.repository_owner}}
+
+          
       - name: publish package to github repository
         env:
           WASH_REG_USER: ${{ github.repository_owner }}
