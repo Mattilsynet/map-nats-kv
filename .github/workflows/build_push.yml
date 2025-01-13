@@ -43,41 +43,41 @@ jobs:
         run: |
           [[ ! -f wadm.yaml ]] || wash app validate wadm.yaml
           [[ ! -f local.wadm.yaml ]] || wash app validate local.wadm.yaml
-      # - name: wash build
-      #   shell: bash
-      #   run: |
-      #     wash build
-      # - name: publish package to github repository
-      #   env:
-      #     WASH_REG_USER: ${{ github.repository_owner }}
-      #     WASH_REG_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      #   shell: bash
-      #   run: |
-      #     wash push ghcr.io/${{ github.repository }}:${{ github.ref_name }} ${{ env.providername }}.par.gz --annotation org.opencontainers.image.source=${{github.server_url}}/${{ github.repository }}
-      #   working-directory: build
-      # - name: Create tar.gz
-      #   run: |
-      #     tar -czf ${{ env.providername }}.tar.gz ./build/${{ env.providername }}.par.gz
-      # - name: Create GitHub Release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ github.ref_name }} # Tag that triggered the workflow
-      #     release_name: ${{ github.ref_name }}
-      #     draft: false
-      #     prerelease: false
-      #
-      # - name: Upload Release Asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./${{ env.providername }}.tar.gz # Path to your file
-      #     asset_name: ${{ env.providername }}
-      #     asset_content_type: application/gzip
+      - name: wash build
+        shell: bash
+        run: |
+          wash build
+      - name: publish package to github repository
+        env:
+          WASH_REG_USER: ${{ github.repository_owner }}
+          WASH_REG_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          wash push ghcr.io/${{ github.repository }}:${{ github.ref_name }} ${{ env.providername }}.par.gz --annotation org.opencontainers.image.source=${{github.server_url}}/${{ github.repository }}
+        working-directory: build
+      - name: Create tar.gz
+        run: |
+          tar -czf ${{ env.providername }}.tar.gz ./build/${{ env.providername }}.par.gz
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }} # Tag that triggered the workflow
+          release_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.providername }}.tar.gz # Path to your file
+          asset_name: ${{ env.providername }}
+          asset_content_type: application/gzip
 
 #TODO: run wash up, wash apply and check output for success messages
 
