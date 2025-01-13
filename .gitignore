@@ -7,6 +7,7 @@ build/
 gen/
 wkg.lock
 wasmcloud.lock
+map-nats-kv
 
 # frontend
 public/
