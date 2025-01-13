@@ -61,7 +61,7 @@ jobs:
           
       - name: publish package to github repository
         env:
-          WASH_REG_USER: ${{ github.repository_owner }}
+          WASH_REG_USER: ${{ github.actor }}
           WASH_REG_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
