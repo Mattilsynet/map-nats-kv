@@ -1,10 +1,8 @@
 name: build_push
 on:
   push:
-    branches:
-      - master
-    # tags:
-    #   - 'v*'
+    tags:
+      - 'v*'
 
 jobs:
   wash-build:
