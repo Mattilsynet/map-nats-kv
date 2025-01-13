@@ -12,8 +12,8 @@ jobs:
     env:
       providername: map-nats-kv
     permissions:
-      contents: "write"
-      packages: "write"
+      contents: 'write'
+      packages: 'write'
     steps:
       - name: checkout
         uses: actions/checkout@v4
