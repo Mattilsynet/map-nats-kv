@@ -4,7 +4,7 @@ metadata:
   name: nats-kv-demo-app
   annotations:
     version: v0.0.1
-    description: 'An application with a provider and component built for extending wasmCloud with custom capabilities'
+    description: 'An application with a provider and component built for extending wasmCloud with nats-kv capabilities'
 spec:
   components:
     - name: nats-kv-component

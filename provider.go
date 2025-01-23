@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/Mattilsynet/map-nats-kv/bindings/exports/mattilsynet/map_kv/key_value"
+	"github.com/Mattilsynet/map-nats-kv/pkg/config"
+	"github.com/Mattilsynet/map-nats-kv/pkg/pkgnats"
+	"github.com/Mattilsynet/map-nats-kv/pkg/secrets"
 	"github.com/nats-io/nats.go"
 	sdk "go.wasmcloud.dev/provider"
 	wrpc "wrpc.io/go"
@@ -28,20 +31,23 @@ func NewKvHandler(linkedFrom, linkedTo map[string]map[string]string) *KvHandler 
 	}
 }
 
-func (ha *KvHandler) RegisterComponent(sourceID string) error {
-	config := ha.linkedFrom[sourceID]
-	nc, err := nats.Connect(config["url"], nats.UserJWTAndSeed(config["jwt"], config["seed"]))
+func (ha *KvHandler) RegisterComponent(sourceID string, target string, config *config.Config, secrets *secrets.Secrets) error {
+	url := config.NatsURL
+	nc, err := pkgnats.CreateNatsConnection(target, secrets.NatsCredentials, url)
 	if err != nil {
+		ha.provider.Logger.Error("Failed to create NATS connection", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
 	js, err := nc.JetStream()
 	if err != nil {
+		ha.provider.Logger.Error("Failed to create jetstream context", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
-	ha.provider.Logger.Info("Connected to NATS", "sourceId", sourceID)
+	ha.provider.Logger.Info("Connected to NATS", "sourceId", sourceID, "target", target)
 	ha.provider.Logger.Info("Config", "config", config)
-	kve, err := js.KeyValue(config["bucket"])
+	kve, err := js.KeyValue(config.Bucket)
 	if err != nil {
+		ha.provider.Logger.Error("Failed to create KeyValue", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
 	ha.ncMap[sourceID] = nc

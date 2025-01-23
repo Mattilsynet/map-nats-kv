@@ -9,6 +9,8 @@ import (
 	"syscall"
 
 	server "github.com/Mattilsynet/map-nats-kv/bindings"
+	"github.com/Mattilsynet/map-nats-kv/pkg/config"
+	"github.com/Mattilsynet/map-nats-kv/pkg/secrets"
 	"go.wasmcloud.dev/provider"
 )
 
@@ -85,6 +87,7 @@ func run() error {
 	return nil
 }
 
+// TODO: handle nats-kv-watcher-interface
 func handleNewSourceLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling new source link", "link", link)
 	handler.linkedTo[link.Target] = link.SourceConfig
@@ -94,7 +97,9 @@ func handleNewSourceLink(handler *KvHandler, link provider.InterfaceLinkDefiniti
 func handleNewTargetLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling new target link", "link", link)
 	handler.linkedFrom[link.SourceID] = link.TargetConfig
-	handler.RegisterComponent(link.SourceID)
+	kvConfig := config.From(link.TargetConfig)
+	secrets := secrets.From(link.TargetSecrets)
+	handler.RegisterComponent(link.SourceID, link.Target, config, secrets)
 	return nil
 }
 
