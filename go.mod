@@ -13,7 +13,7 @@ require (
 
 )
 
-replace go.wasmloud.dev/provider v0.0.5 => github.com/Solverj/wasmcloud-go v0.0.0-20250123124426-133302dc2e81
+replace go.wasmloud.dev/provider v0.0.5 => github.com/Solverj/wasmcloud-go v0.0.1
 
 replace golang.org/x/crypto => golang.org/x/crypto v0.31.0
 
