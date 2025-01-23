@@ -13,12 +13,9 @@ require (
 
 )
 
-replace go.wasmloud.dev/provider v0.0.5 => github.com/Solverj/wasmcloud-go v0.0.1
-
 replace golang.org/x/crypto => golang.org/x/crypto v0.31.0
 
 require (
-	github.com/Solverj/wasmcloud-go v0.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
