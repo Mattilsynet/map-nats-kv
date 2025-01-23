@@ -160,6 +160,8 @@ func NewWithHostDataSource(source io.Reader, options ...ProviderHandler) (*Wasmc
 	} else {
 		logger.Debug("connecting to nats", "url", hostData.LatticeRPCURL)
 		nc, err = nats.Connect(hostData.LatticeRPCURL)
+		// Connect to NATS
+	}
 	if err != nil {
 		return nil, err
 	}
