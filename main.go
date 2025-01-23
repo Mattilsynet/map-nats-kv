@@ -99,7 +99,7 @@ func handleNewTargetLink(handler *KvHandler, link provider.InterfaceLinkDefiniti
 	handler.linkedFrom[link.SourceID] = link.TargetConfig
 	kvConfig := config.From(link.TargetConfig)
 	secrets := secrets.From(link.TargetSecrets)
-	handler.RegisterComponent(link.SourceID, link.Target, config, secrets)
+	handler.RegisterComponent(link.SourceID, link.Target, kvConfig, secrets)
 	return nil
 }
 
