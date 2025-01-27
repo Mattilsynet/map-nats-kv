@@ -1,14 +1,36 @@
 # map-nats-kv
-A nats-kv provider for wasmcloud written in go, supports CRUD and listKeys
+A nats-kv provider for wasmcloud written in go, supports CRUD
 
+## Link definition settings 
+To configure this provider, use the following link settings in your link defitinion:
+
+```yaml
+---
+target:
+  name: map-nats-kv
+  config:
+    - name: <a unique config name in this whole wadm.yaml context>
+      properties:
+        bucket: <your-bucket-name>
+        url: <your-nats-server-to-connect-to>
+--- 
+# secrets, the nats-credentials must be a base64 encoded nats-credentials. Nats-credentials decoded resulting in both seed and jwt pem blocks
+target: 
+  name: map-nats-kv 
+    secrets:
+      - name: nats-credentials # <- must be this name
+        properties:
+        policy: <your-backend-policy>
+        key: <your-key-in-the-nats-kv>
+            
+```
 ## Building
 
 Prerequisites:
 
-1. [Go toolchain](https://go.dev/doc/install)
-1. [wit-bindgen-wrpc 0.7.0](https://github.com/bytecodealliance/wrpc), download the release binary
-1. [wash](https://wasmcloud.com/docs/installation)
-
+1. [Go toolchain](https://go.dev/doc/install)  
+2. [wit-bindgen-wrpc 0.11.1](https://github.com/bytecodealliance/wrpc), download the release binary  
+3. [wash](https://wasmcloud.com/docs/installation)  
 ```bash
 go generate ./...
 go build .
