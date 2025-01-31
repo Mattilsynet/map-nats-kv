@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.4
 
 require (
-	github.com/bytecodealliance/wasm-tools-go v0.3.2
+	github.com/bytecodealliance/wasm-tools-go v0.3.1
 	github.com/nats-io/nats.go v1.38.0
 	go.wasmcloud.dev/component v0.0.5
 	go.wasmcloud.dev/provider v0.0.5
