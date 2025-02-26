@@ -168,3 +168,22 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 	}
 	return wrpc.Ok[string](keys), nil
 }
+
+// TODO: Put this in it's own thread and add it to the provider supervision such that we can terminate it on deregister all components
+func (ha *KvHandler) WatchAll(ctx__ context.Context, sourceId string) error {
+	a, b := ha.kvMap[sourceId].WatchAll()
+	if b != nil {
+		ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", b)
+		return b
+	}
+	for {
+		select {
+		case update := <-a.Updates():
+			// TODO: Link to the component and send this update
+			_ = update // <-- cchange this to component sending through wrpc
+		case stop := <-ctx__.Done():
+			ha.provider.Logger.Info("WatchAll stopped", "sourceId", sourceId, "error", stop)
+			return nil
+		}
+	}
+}

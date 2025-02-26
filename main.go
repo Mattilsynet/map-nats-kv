@@ -91,6 +91,7 @@ func run() error {
 func handleNewSourceLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling new source link", "link", link)
 	handler.linkedTo[link.Target] = link.SourceConfig
+	handler.RegisterComponent(link.SourceID, link.Target, config.From(link.SourceConfig), secrets.From(link.SourceSecrets))
 	return nil
 }
 
@@ -105,7 +106,8 @@ func handleNewTargetLink(handler *KvHandler, link provider.InterfaceLinkDefiniti
 
 func handleDelSourceLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling del source link", "link", link)
-	delete(handler.linkedTo, link.SourceID)
+	handler.DeRegisterComponent(link.SourceID)
+	delete(handler.linkedTo, link.Target)
 	return nil
 }
 
