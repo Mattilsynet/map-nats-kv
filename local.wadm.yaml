@@ -25,10 +25,6 @@ spec:
               - name: nats-kv
                 properties:
                   bucket: "managed-environment"
-              - name: nats-config
-                properties:
-                  jwt: ""
-                  seed: ""
                   url: "nats://localhost:4222"
         - type: link
           properties:
@@ -40,6 +36,18 @@ spec:
       type: capability
       properties:
         image: file://./build/map-nats-kv.par.gz
+      traits:
+        - type: link
+          properties:
+            target: nats-kv-component
+            namespace: mattilsynet
+            package: map-kv
+            interfaces: [key-value-watcher]
+            source_config:
+              - name: nats-kv
+                properties:
+                  bucket: "test-bucket"
+                  url: "nats://localhost:4222"
     - name: nats
       type: capability
       properties:
