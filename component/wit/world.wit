@@ -3,6 +3,7 @@ package mattilsynet:nats-kv;
 world component {
     include wasmcloud:component-go/imports@0.1.0;
     import mattilsynet:map-kv/key-value;
+    export mattilsynet:map-kv/key-value-watcher;
     export wasmcloud:messaging/handler@0.2.0;
     import wasmcloud:messaging/consumer@0.2.0;
 }

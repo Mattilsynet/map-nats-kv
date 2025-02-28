@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	keyvalue "github.com/Mattilsynet/map-nats-kv/component/gen/mattilsynet/map-kv/key-value"
+	keyvaluewatcher "github.com/Mattilsynet/map-nats-kv/component/gen/mattilsynet/map-kv/key-value-watcher"
 	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/consumer"
 	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/handler"
 	"github.com/Mattilsynet/map-nats-kv/component/gen/wasmcloud/messaging/types"
@@ -22,6 +23,11 @@ var (
 func init() {
 	logger = wasilog.ContextLogger("NATS-KV-Component")
 	handler.Exports.HandleMessage = msgHandlerv2
+	keyvaluewatcher.Exports.WatchAll = watchAllHandler
+}
+
+func watchAllHandler(kv keyvalue.KeyValueEntry) {
+	logger.Info("watchAllHandler", "key", kv.Key, "value", string(kv.Value.Slice()))
 }
 
 func msgHandlerv2(msg types.BrokerMessage) (result cm.Result[string, struct{}, string]) {

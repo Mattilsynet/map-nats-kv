@@ -63,7 +63,7 @@ func (ha *KvHandler) DeRegisterComponent(sourceID string) {
 	delete(ha.kvMap, sourceID)
 }
 
-func (ha *KvHandler) DeRegisterAll() {
+func (ha *KvHandler) DeferAllNatsConnections() {
 	for _, nc := range ha.ncMap {
 		nc.Close()
 	}
@@ -171,22 +171,30 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 	return wrpc.Ok[string](keys), nil
 }
 
-// TODO: Put this in it's own thread and add it to the provider supervision such that we can terminate it on deregister all components
-func (ha *KvHandler) WatchAll(ctx__ context.Context, sourceId string) error {
-	a, natsWatchAllErr := ha.kvMap[sourceId].WatchAll()
+func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId string) error {
+	kvWatcherChannel, natsWatchAllErr := ha.kvMap[sourceId].WatchAll()
 	if natsWatchAllErr != nil {
 		ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", natsWatchAllErr)
 		return natsWatchAllErr
 	}
 	client := ha.provider.OutgoingRpcClient(sourceId)
-	for kvEntry := range a.Updates() {
-		keyval := types.KeyValueEntry{}
-		keyval.Key = kvEntry.Key()
-		keyval.Value = kvEntry.Value()
-		err := key_value_watcher.WatchAll(ctx__, client, &keyval)
-		if err != nil {
-			ha.provider.Logger.Error("Failed to send update to component", "sourceId", sourceId, "error", err)
+	go func() {
+		for {
+			select {
+			case kvEntry := <-kvWatcherChannel.Updates():
+				if kvEntry != nil {
+					keyval := types.KeyValueEntry{}
+					keyval.Key = kvEntry.Key()
+					keyval.Value = kvEntry.Value()
+					err := key_value_watcher.WatchAll(ctx__, client, &keyval)
+					if err != nil {
+						ha.provider.Logger.Error("Failed to send update to component", "sourceId", sourceId, "error", err)
+					}
+				}
+			case <-ctx__.Done():
+				return
+			}
 		}
-	}
+	}()
 	return nil
 }

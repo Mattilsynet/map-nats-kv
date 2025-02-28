@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ func main() {
 }
 
 func run() error {
+	ctx, cancel := context.WithCancel(context.Background())
 	// Initialize the provider with callbacks to track linked components
 	providerHandler := NewKvHandler(
 		make(map[string]map[string]string),
@@ -29,7 +31,7 @@ func run() error {
 
 	p, err := provider.New(
 		provider.SourceLinkPut(func(link provider.InterfaceLinkDefinition) error {
-			return handleNewSourceLink(providerHandler, link)
+			return handleNewSourceLink(ctx, providerHandler, link)
 		}),
 		provider.TargetLinkPut(func(link provider.InterfaceLinkDefinition) error {
 			return handleNewTargetLink(providerHandler, link)
@@ -48,6 +50,8 @@ func run() error {
 		}),
 	)
 	if err != nil {
+		cancel()
+		p.Shutdown()
 		return err
 	}
 
@@ -61,14 +65,15 @@ func run() error {
 	// Handle RPC operations
 	stopFunc, err := server.Serve(p.RPCClient, providerHandler)
 	if err != nil {
+		cancel()
 		p.Shutdown()
 		return err
 	}
 
 	// Handle control interface operations
 	go func() {
-		err := p.Start()
-		providerCh <- err
+		providerStartErr := p.Start()
+		providerCh <- providerStartErr
 	}()
 
 	// Shutdown on SIGINT
@@ -77,9 +82,12 @@ func run() error {
 	// Run provider until either a shutdown is requested or a SIGINT is received
 	select {
 	case err = <-providerCh:
+		cancel()
+		p.Shutdown()
 		stopFunc()
 		return err
 	case <-signalCh:
+		cancel()
 		p.Shutdown()
 		stopFunc()
 	}
@@ -88,10 +96,11 @@ func run() error {
 }
 
 // TODO: handle nats-kv-watcher-interface
-func handleNewSourceLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
+func handleNewSourceLink(ctx context.Context, handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling new source link", "link", link)
 	handler.linkedTo[link.Target] = link.SourceConfig
 	handler.RegisterComponent(link.SourceID, link.Target, config.From(link.SourceConfig), secrets.From(link.SourceSecrets))
+	handler.RegisterComponentWatchAll(ctx, link.SourceID)
 	return nil
 }
 
@@ -124,7 +133,7 @@ func handleHealthCheck(_ *KvHandler) string {
 
 func handleShutdown(handler *KvHandler) error {
 	handler.provider.Logger.Info("Handling shutdown")
-	handler.DeRegisterAll()
+	handler.DeferAllNatsConnections()
 	clear(handler.linkedFrom)
 	clear(handler.linkedTo)
 	return nil
