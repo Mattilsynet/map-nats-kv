@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 
 	server "github.com/Mattilsynet/map-nats-kv/bindings"
@@ -98,14 +99,29 @@ func run() error {
 // TODO: handle nats-kv-watcher-interface
 func handleNewSourceLink(ctx context.Context, handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling new source link", "link", link)
+	if _, ok := handler.linkedTo[link.Target]; ok {
+		handler.provider.Logger.Warn("Already linked", "target", link.Target)
+		return nil
+	}
+	if !slices.Contains(link.Interfaces, "key-value-watcher") {
+		handler.provider.Logger.Warn("Not a key-value-watcher interface", "interfaces", link.Interfaces)
+		return nil
+	}
 	handler.linkedTo[link.Target] = link.SourceConfig
-	handler.RegisterComponent(link.SourceID, link.Target, config.From(link.SourceConfig), secrets.From(link.SourceSecrets))
-	handler.RegisterComponentWatchAll(ctx, link.SourceID)
+	handler.InitiateNatsWatchAll(link.SourceID, link.Target, config.From(link.SourceConfig), secrets.From(link.SourceSecrets))
+	handler.RegisterComponentWatchAll(ctx, link.SourceID, link.Target)
 	return nil
 }
 
 func handleNewTargetLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling new target link", "link", link)
+	if _, ok := handler.linkedTo[link.Target]; ok {
+		handler.provider.Logger.Info("Already linked", "target", link.Target)
+	}
+	if !slices.Contains(link.Interfaces, "key-value") {
+		handler.provider.Logger.Info("Not a key-value interface", "interfaces", link.Interfaces)
+		return nil
+	}
 	handler.linkedFrom[link.SourceID] = link.TargetConfig
 	kvConfig := config.From(link.TargetConfig)
 	secrets := secrets.From(link.TargetSecrets)
@@ -115,7 +131,8 @@ func handleNewTargetLink(handler *KvHandler, link provider.InterfaceLinkDefiniti
 
 func handleDelSourceLink(handler *KvHandler, link provider.InterfaceLinkDefinition) error {
 	handler.provider.Logger.Info("Handling del source link", "link", link)
-	handler.DeRegisterComponent(link.SourceID)
+	handler.provider.Logger.Info("link interfaces", "interfaces", link.Interfaces)
+	handler.DeRegisterComponentWatchAll(link.Target)
 	delete(handler.linkedTo, link.Target)
 	return nil
 }

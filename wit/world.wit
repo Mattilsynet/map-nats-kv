@@ -8,8 +8,8 @@ interface types {
 }
 interface key-value-watcher {
     use types.{key-value-entry};
-    watch: func(key-value-entry: key-value-entry);
-    watch-all: func(key-value-entry: key-value-entry);
+    watch: func(key-value-entry: key-value-entry) -> result<_, string>;
+    watch-all: func(key-value-entry: key-value-entry) -> result<_, string>;
 }
 interface key-value {
     use types.{key-value-entry};

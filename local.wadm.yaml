@@ -44,10 +44,11 @@ spec:
             package: map-kv
             interfaces: [key-value-watcher]
             source_config:
-              - name: nats-kv
+              - name: nats-kv-watcher-config
                 properties:
                   bucket: "test-bucket"
                   url: "nats://localhost:4222"
+                  startup_time: "5"
     - name: nats
       type: capability
       properties:

@@ -21,16 +21,18 @@ var (
 )
 
 func init() {
-	logger = wasilog.ContextLogger("NATS-KV-Component")
 	handler.Exports.HandleMessage = msgHandlerv2
 	keyvaluewatcher.Exports.WatchAll = watchAllHandler
 }
 
-func watchAllHandler(kv keyvalue.KeyValueEntry) {
-	logger.Info("watchAllHandler", "key", kv.Key, "value", string(kv.Value.Slice()))
+func watchAllHandler(kv keyvalue.KeyValueEntry) cm.Result[string, struct{}, string] {
+	logger = wasilog.ContextLogger("NATS-KV-Component-watch-all")
+	logger.Info("Got", "key", kv.Key, "value", string(kv.Value.Slice()))
+	return cm.OK[cm.Result[string, struct{}, string]](struct{}{})
 }
 
 func msgHandlerv2(msg types.BrokerMessage) (result cm.Result[string, struct{}, string]) {
+	logger = wasilog.ContextLogger("NATS-KV-Component-request-reply")
 	replyMsg := types.BrokerMessage{
 		Subject: *msg.ReplyTo.Some(),
 		Body:    cm.ToList([]byte("hey back")),
@@ -65,7 +67,11 @@ func msgHandlerv2(msg types.BrokerMessage) (result cm.Result[string, struct{}, s
 			logger.Error("Error listing keys", "error", listOfKeys.Err())
 		}
 	default:
-		logger.Info("unknown command")
+		if msg.ReplyTo.None() {
+			logger.Info("no reply to, we just got a publish and not a request")
+			return cm.Err[cm.Result[string, struct{}, string]]("pub/sub not allowed")
+		}
+		logger.Info("unknown command", "command", crudAsString)
 	}
 	return consumer.Publish(replyMsg)
 }

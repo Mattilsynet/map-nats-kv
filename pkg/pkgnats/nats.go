@@ -23,11 +23,11 @@ func CreateNatsConnection(clientName, credentialsFileContent, natsUrl string) (*
 	opts = setupNatsConnectionOpts(opts)
 	if len(tmpCredsFile.Name()) > 0 {
 		opts = append(opts, nats.UserCredentials(tmpCredsFile.Name()))
-		slog.Info("pkgnats: Credentials file provided")
+		slog.Debug("pkgnats: Credentials file provided")
 	} else {
-		slog.Info("pkgnats: No credentials file provided")
+		slog.Warn("pkgnats: No credentials file provided, if this is production then this setup might not work")
 	}
-	slog.Info("pkgnats: Creating nats connection with url: " + natsUrl + " and client name: " + clientName)
+	slog.Debug("pkgnats: Creating nats connection with url: " + natsUrl + " and client name: " + clientName)
 	nc, err := nats.Connect(natsUrl, opts...)
 	if err != nil {
 		return nil, err
@@ -42,17 +42,17 @@ func setupNatsConnectionOpts(opts []nats.Option) []nats.Option {
 	reconnectDelay := time.Second
 
 	opts = append(opts, nats.ReconnectWait(reconnectDelay))
-	slog.Info("pkgnats: reconnect wait option set to " + reconnectDelay.String())
+	slog.Debug("pkgnats: reconnect wait option set to " + reconnectDelay.String())
 	opts = append(opts, nats.MaxReconnects(int(totalWait/reconnectDelay)))
-	slog.Info("pkgnats: max reconnects option set to " + fmt.Sprintf("%v", int(totalWait/reconnectDelay)))
+	slog.Debug("pkgnats: max reconnects option set to " + fmt.Sprintf("%v", int(totalWait/reconnectDelay)))
 	opts = append(opts, nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-		slog.Info(fmt.Sprintf("Disconnected: will attempt reconnects for %.0fm", totalWait.Minutes()))
+		slog.Debug(fmt.Sprintf("Disconnected: will attempt reconnects for %.0fm", totalWait.Minutes()))
 	}))
 	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
-		slog.Info(fmt.Sprintf("Reconnected [%s]", nc.ConnectedUrl()))
+		slog.Debug(fmt.Sprintf("Reconnected [%s]", nc.ConnectedUrl()))
 	}))
 	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
-		slog.Info(fmt.Sprintf("Exiting: %v", nc.LastError()))
+		slog.Warn(fmt.Sprintf("Exiting: %v", nc.LastError()))
 	}))
 	return opts
 }

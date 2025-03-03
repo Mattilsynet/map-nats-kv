@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/Mattilsynet/map-nats-kv/bindings/exports/mattilsynet/map_kv/key_value"
 	"github.com/Mattilsynet/map-nats-kv/bindings/mattilsynet/map_kv/key_value_watcher"
@@ -22,12 +23,14 @@ type KvHandler struct {
 	linkedTo   map[string]map[string]string
 	ncMap      map[string]*nats.Conn
 	kvMap      map[string]nats.KeyValue
+	configs    map[string]*config.Config
 }
 
 func NewKvHandler(linkedFrom, linkedTo map[string]map[string]string) *KvHandler {
 	return &KvHandler{
 		linkedFrom: linkedFrom,
 		linkedTo:   linkedTo,
+		configs:    make(map[string]*config.Config),
 		ncMap:      make(map[string]*nats.Conn),
 		kvMap:      make(map[string]nats.KeyValue),
 	}
@@ -45,8 +48,6 @@ func (ha *KvHandler) RegisterComponent(sourceID string, target string, config *c
 		ha.provider.Logger.Error("Failed to create jetstream context", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
-	ha.provider.Logger.Info("Connected to NATS", "sourceId", sourceID, "target", target)
-	ha.provider.Logger.Info("Config", "config", config)
 	kve, err := js.KeyValue(config.Bucket)
 	if err != nil {
 		ha.provider.Logger.Error("Failed to create KeyValue", "sourceId", sourceID, "target", target, "error", err)
@@ -57,10 +58,39 @@ func (ha *KvHandler) RegisterComponent(sourceID string, target string, config *c
 	return nil
 }
 
+func (ha *KvHandler) InitiateNatsWatchAll(sourceID string, target string, config *config.Config, secrets *secrets.Secrets) error {
+	url := config.NatsURL
+	nc, err := pkgnats.CreateNatsConnection(target, secrets.NatsCredentials, url)
+	if err != nil {
+		ha.provider.Logger.Error("Failed to create NATS connection", "sourceId", sourceID, "target", target, "error", err)
+		return err
+	}
+	js, err := nc.JetStream()
+	if err != nil {
+		ha.provider.Logger.Error("Failed to create jetstream context", "sourceId", sourceID, "target", target, "error", err)
+		return err
+	}
+	kve, err := js.KeyValue(config.Bucket)
+	if err != nil {
+		ha.provider.Logger.Error("Failed to create KeyValue", "sourceId", sourceID, "target", target, "error", err)
+		return err
+	}
+	ha.ncMap[target] = nc
+	ha.kvMap[target] = kve
+	ha.configs[target] = config
+	return nil
+}
+
 func (ha *KvHandler) DeRegisterComponent(sourceID string) {
 	ha.ncMap[sourceID].Close()
 	delete(ha.ncMap, sourceID)
 	delete(ha.kvMap, sourceID)
+}
+
+func (ha *KvHandler) DeRegisterComponentWatchAll(target string) {
+	ha.ncMap[target].Close()
+	delete(ha.ncMap, target)
+	delete(ha.kvMap, target)
 }
 
 func (ha *KvHandler) DeferAllNatsConnections() {
@@ -171,13 +201,16 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 	return wrpc.Ok[string](keys), nil
 }
 
-func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId string) error {
-	kvWatcherChannel, natsWatchAllErr := ha.kvMap[sourceId].WatchAll()
+func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, target string) error {
+	kvWatcherChannel, natsWatchAllErr := ha.kvMap[target].WatchAll()
 	if natsWatchAllErr != nil {
 		ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", natsWatchAllErr)
 		return natsWatchAllErr
 	}
-	client := ha.provider.OutgoingRpcClient(sourceId)
+	config := ha.configs[target]
+	client := ha.provider.OutgoingRpcClient(target)
+	// INFO: A little delay for the provider to wait for the component to be ready
+	time.Sleep(time.Duration(config.ComponentEstimatedStartupTime) * time.Second)
 	go func() {
 		for {
 			select {
@@ -186,12 +219,19 @@ func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId s
 					keyval := types.KeyValueEntry{}
 					keyval.Key = kvEntry.Key()
 					keyval.Value = kvEntry.Value()
-					err := key_value_watcher.WatchAll(ctx__, client, &keyval)
+					ha.provider.Logger.Debug("provider", "pre component, key found", string(keyval.Key))
+					response, err := key_value_watcher.WatchAll(ctx__, client, &keyval)
 					if err != nil {
-						ha.provider.Logger.Error("Failed to send update to component", "sourceId", sourceId, "error", err)
+						ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", err)
+					}
+					if response != nil {
+						if response.Err != nil {
+							ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", response.Err)
+						}
 					}
 				}
 			case <-ctx__.Done():
+				ha.provider.Logger.Warn("Context done", "sourceId", sourceId)
 				return
 			}
 		}
