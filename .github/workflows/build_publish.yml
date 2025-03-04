@@ -20,7 +20,7 @@ jobs:
       - name: install go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22.0'
+          go-version: '1.23.2'
       - name: install tinygo
         uses: acifani/setup-tinygo@v2
         with:
@@ -33,7 +33,7 @@ jobs:
       - name: install wit-bindgen-wrpc
         shell: bash
         run: |
-          curl -LO https://github.com/bytecodealliance/wrpc/releases/download/v0.11.1/wit-bindgen-wrpc-x86_64-unknown-linux-musl;
+          curl -LO https://github.com/bytecodealliance/wrpc/releases/download/v0.14.0/wit-bindgen-wrpc-x86_64-unknown-linux-musl;
           mv wit-bindgen-wrpc-x86_64-unknown-linux-musl wit-bindgen-wrpc
           chmod +x wit-bindgen-wrpc
           install -m 755 wit-bindgen-wrpc /usr/local/bin/
