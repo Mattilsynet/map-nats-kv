@@ -37,10 +37,15 @@ jobs:
           mv wit-bindgen-wrpc-x86_64-unknown-linux-musl wit-bindgen-wrpc
           chmod +x wit-bindgen-wrpc
           install -m 755 wit-bindgen-wrpc /usr/local/bin/
-      - name: generate go files
+      - name: generate go files, provider
         shell: bash
         run: |
           go generate ./...
+      - name: generate go files, component
+        shell: bash
+        run: |
+          go generate ./...
+        working-directory: component
       - name: validate-yaml
         shell: bash
         run: |
