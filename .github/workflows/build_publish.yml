@@ -29,7 +29,7 @@ jobs:
       - name: install wash tools
         uses: taiki-e/install-action@v2
         with:
-          tool: wasm-tools@v1.225.0, wash-cli
+          tool: wasm-tools@1.225.0, wash-cli
       - name: install wit-bindgen-wrpc
         shell: bash
         run: |
