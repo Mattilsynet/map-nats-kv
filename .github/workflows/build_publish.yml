@@ -44,6 +44,7 @@ jobs:
       - name: generate go files, component
         shell: bash
         run: |
+          go get github.com/bytecodealliance/wasm-tools-go
           go generate ./...
         working-directory: component
       - name: validate-yaml
