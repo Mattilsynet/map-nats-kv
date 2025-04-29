@@ -18,9 +18,6 @@ _examples/
 # environemnt files and folders
 .envrc
 
-#go files and folders
-go.sum
-
 #terraform oriented files and folders
 # Local .terraform directories
 **/.terraform/*
