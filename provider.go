@@ -219,7 +219,7 @@ func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, 
 					keyval := types.KeyValueEntry{}
 					keyval.Key = kvEntry.Key()
 					keyval.Value = kvEntry.Value()
-					ha.provider.Logger.Debug("provider", "pre component, key found", string(keyval.Key))
+					ha.provider.Logger.Info("provider", "pre component, key found", string(keyval.Key))
 					response, err := key_value_watcher.WatchAll(ctx__, client, &keyval)
 					if err != nil {
 						ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", err)
