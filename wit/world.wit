@@ -1,4 +1,4 @@
-package mattilsynet:map-kv;
+package mattilsynet:map-kv@0.1.0;
 
 interface types {
    record key-value-entry {

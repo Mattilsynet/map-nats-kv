@@ -1,0 +1,5 @@
+[metadata]
+categories = ["map-nats-kv"]
+description = "nats-kv for wasmcloud components"
+license = "MIT"
+repository = "https://github.com/Mattilsynet/map-nats-kv"
