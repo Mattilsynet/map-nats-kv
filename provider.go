@@ -26,6 +26,9 @@ type KvHandler struct {
 	configs    map[string]*config.Config
 }
 
+func stuff() {
+}
+
 func NewKvHandler(linkedFrom, linkedTo map[string]map[string]string) *KvHandler {
 	return &KvHandler{
 		linkedFrom: linkedFrom,
@@ -217,8 +220,10 @@ func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, 
 			case kvEntry := <-kvWatcherChannel.Updates():
 				if kvEntry != nil {
 					keyval := types.KeyValueEntry{}
+
 					keyval.Key = kvEntry.Key()
 					keyval.Value = kvEntry.Value()
+					keyval.Op = kvEntry.Operation().String()
 					ha.provider.Logger.Info("provider", "pre component, key found", string(keyval.Key))
 					response, err := key_value_watcher.WatchAll(ctx__, client, &keyval)
 					if err != nil {
