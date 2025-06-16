@@ -205,7 +205,7 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 }
 
 func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, target string) error {
-	kvWatcherChannel, natsWatchAllErr := ha.kvMap[target].WatchAll()
+	kvWatcherChannel, natsWatchAllErr := ha.kvMap[target].WatchAll(nats.Context(ctx__))
 	if natsWatchAllErr != nil {
 		ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", natsWatchAllErr)
 		return natsWatchAllErr
