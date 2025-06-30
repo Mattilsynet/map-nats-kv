@@ -54,6 +54,7 @@ func (ha *KvHandler) RegisterComponent(sourceID string, target string, config *c
 	}
 	ha.ncMap[sourceID] = nc
 	ha.configs[sourceID] = config
+	ha.provider.Logger.Info("context", "sourceId from kv interface", sourceID)
 	return nil
 }
 
@@ -209,6 +210,7 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 	if !isLinked {
 		return wrpc.Err[[]string]("Unauthorized"), nil
 	}
+	ha.provider.Logger.Info("Get request", "source_id", sourceId)
 	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
