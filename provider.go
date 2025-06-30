@@ -216,6 +216,7 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 	}
 	keyChannel, err := kv.ListKeys()
 	if err != nil {
+		ha.provider.Logger.Error("error listing keys", "error", err)
 		return wrpc.Err[[]string](err.Error()), err
 	}
 	keys := []string{}
