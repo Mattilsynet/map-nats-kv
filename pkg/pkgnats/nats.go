@@ -30,6 +30,7 @@ func CreateNatsConnection(clientName, credentialsFileContent, natsUrl string) (*
 	slog.Debug("pkgnats: Creating nats connection with url: " + natsUrl + " and client name: " + clientName)
 	nc, err := nats.Connect(natsUrl, opts...)
 	if err != nil {
+		slog.Error("pkgnats: Failed to connect to NATS server", "error", err)
 		return nil, err
 	}
 	tmpCredsFile.Close()
