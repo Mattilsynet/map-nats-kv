@@ -230,7 +230,7 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 
 func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, target string) error {
 	kv, err := ha.getKvByConfigAndNatsConnection(target)
-	config := ha.configs[sourceId]
+	config := ha.configs[target]
 	if err != nil {
 		ha.provider.Logger.Warn("Failed to getkv", "error", err)
 		return err
