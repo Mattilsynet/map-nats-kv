@@ -41,40 +41,23 @@ func (ha *KvHandler) RegisterComponent(sourceID string, target string, config *c
 	url := config.NatsURL
 	nc, err := pkgnats.CreateNatsConnection(target, secrets.NatsCredentials, url)
 	if err != nil {
-		ha.provider.Logger.Error("Failed to create NATS connection", "sourceId", sourceID, "target", target, "error", err)
+		ha.provider.Logger.Error("Failed to create (key-value) NATS connection", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
-	if err != nil {
-		ha.provider.Logger.Error("Failed to create jetstream context", "sourceId", sourceID, "target", target, "error", err)
-		return err
-	}
-	if err != nil {
-		ha.provider.Logger.Error("Failed to create KeyValue", "sourceId", sourceID, "target", target, "error", err)
-		return err
-	}
-	ha.ncMap[sourceID] = nc
-	ha.configs[sourceID] = config
-	ha.provider.Logger.Info("context", "sourceId from kv interface", sourceID)
+	ha.ncMap[target] = nc
+	ha.configs[target] = config
 	return nil
 }
 
 func (ha *KvHandler) InitiateNatsWatchAll(sourceID string, target string, config *config.Config, secrets *secrets.Secrets) error {
 	url := config.NatsURL
-	nc, err := pkgnats.CreateNatsConnection(target, secrets.NatsCredentials, url)
+	nc, err := pkgnats.CreateNatsConnection(sourceID, secrets.NatsCredentials, url)
 	if err != nil {
-		ha.provider.Logger.Error("Failed to create NATS connection", "sourceId", sourceID, "target", target, "error", err)
+		ha.provider.Logger.Error("Failed to create (key-value-watcher) NATS connection", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
-	if err != nil {
-		ha.provider.Logger.Error("Failed to create jetstream context", "sourceId", sourceID, "target", target, "error", err)
-		return err
-	}
-	if err != nil {
-		ha.provider.Logger.Error("Failed to create KeyValue", "sourceId", sourceID, "target", target, "error", err)
-		return err
-	}
-	ha.ncMap[target] = nc
-	ha.configs[target] = config
+	ha.ncMap[sourceID] = nc
+	ha.configs[sourceID] = config
 	return nil
 }
 
@@ -101,21 +84,23 @@ func (ha *KvHandler) isLinkedWith(ctx context.Context) (bool, string) {
 		ha.provider.Logger.Warn("Received request from unknown origin")
 		return false, ""
 	}
-	sourceId := header.Get("source-id")
+	target := header.Get("target")
 	// Only allow requests from a linked component
-	if ha.linkedFrom[sourceId] == nil {
-		ha.provider.Logger.Warn("Received request from unlinked source", "sourceId", sourceId)
+	if ha.linkedFrom[target] == nil {
+		ha.provider.Logger.Warn("Received request from unlinked target", "target", target)
 		return false, ""
 	}
-	return true, sourceId
+	return true, target
 }
 
+// TODO:
+// all of list-keys interface (get, purge, delete, etc, to be refactored since they share same logic)
 func (ha *KvHandler) Get(ctx__ context.Context, key string) (*wrpc.Result[key_value.KeyValueEntry, string], error) {
-	isLinked, sourceId := ha.isLinkedWith(ctx__)
+	isLinked, target := ha.isLinkedWith(ctx__)
 	if !isLinked {
 		return wrpc.Err[key_value.KeyValueEntry]("Unauthorized"), nil
 	}
-	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	kv, err := ha.getKvByConfigAndNatsConnection(target)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
 		return nil, err
@@ -137,11 +122,11 @@ func keyValErrToWit(a nats.KeyValueEntry, err error) *wrpc.Result[key_value.KeyV
 }
 
 func (ha *KvHandler) Put(ctx__ context.Context, key string, value []uint8) (*wrpc.Result[struct{}, string], error) {
-	isLinked, sourceId := ha.isLinkedWith(ctx__)
+	isLinked, target := ha.isLinkedWith(ctx__)
 	if !isLinked {
 		return wrpc.Err[struct{}]("Unauthorized"), nil
 	}
-	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	kv, err := ha.getKvByConfigAndNatsConnection(target)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
 		return nil, err
@@ -154,11 +139,11 @@ func (ha *KvHandler) Put(ctx__ context.Context, key string, value []uint8) (*wrp
 }
 
 func (ha *KvHandler) Purge(ctx__ context.Context, key string) (*wrpc.Result[struct{}, string], error) {
-	isLinked, sourceId := ha.isLinkedWith(ctx__)
+	isLinked, target := ha.isLinkedWith(ctx__)
 	if !isLinked {
 		return wrpc.Err[struct{}]("Unauthorized"), nil
 	}
-	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	kv, err := ha.getKvByConfigAndNatsConnection(target)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
 		return nil, err
@@ -171,11 +156,11 @@ func (ha *KvHandler) Purge(ctx__ context.Context, key string) (*wrpc.Result[stru
 }
 
 func (ha *KvHandler) Delete(ctx__ context.Context, key string) (*wrpc.Result[struct{}, string], error) {
-	isLinked, sourceId := ha.isLinkedWith(ctx__)
+	isLinked, target := ha.isLinkedWith(ctx__)
 	if !isLinked {
 		return wrpc.Err[struct{}]("Unauthorized"), nil
 	}
-	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	kv, err := ha.getKvByConfigAndNatsConnection(target)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
 		return nil, err
@@ -189,11 +174,11 @@ func (ha *KvHandler) Delete(ctx__ context.Context, key string) (*wrpc.Result[str
 }
 
 func (ha *KvHandler) Create(ctx__ context.Context, key string, value []byte) (*wrpc.Result[struct{}, string], error) {
-	isLinked, sourceId := ha.isLinkedWith(ctx__)
+	isLinked, target := ha.isLinkedWith(ctx__)
 	if !isLinked {
 		return wrpc.Err[struct{}]("Unauthorized"), nil
 	}
-	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	kv, err := ha.getKvByConfigAndNatsConnection(target)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
 		return nil, err
@@ -206,12 +191,12 @@ func (ha *KvHandler) Create(ctx__ context.Context, key string, value []byte) (*w
 }
 
 func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, string], error) {
-	isLinked, sourceId := ha.isLinkedWith(ctx__)
+	isLinked, target := ha.isLinkedWith(ctx__)
 	if !isLinked {
 		return wrpc.Err[[]string]("Unauthorized"), nil
 	}
-	ha.provider.Logger.Info("Get request", "source_id", sourceId)
-	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	ha.provider.Logger.Info("Get request", "target", target)
+	kv, err := ha.getKvByConfigAndNatsConnection(target)
 	if err != nil {
 		ha.provider.Logger.Error("error getting kv", "error", err)
 		return nil, err
@@ -229,8 +214,8 @@ func (ha *KvHandler) ListKeys(ctx__ context.Context) (*wrpc.Result[[]string, str
 }
 
 func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, target string) error {
-	kv, err := ha.getKvByConfigAndNatsConnection(target)
-	config := ha.configs[target]
+	kv, err := ha.getKvByConfigAndNatsConnection(sourceId)
+	config := ha.configs[sourceId]
 	if err != nil {
 		ha.provider.Logger.Warn("Failed to getkv", "error", err)
 		return err
@@ -241,7 +226,7 @@ func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, 
 		ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", natsWatchAllErr)
 		return natsWatchAllErr
 	}
-	client := ha.provider.OutgoingRpcClient(target)
+	client := ha.provider.OutgoingRpcClient(sourceId)
 	// INFO: A little delay for the provider to wait for the component to be ready
 	time.Sleep(time.Duration(config.ComponentEstimatedStartupTime) * time.Second)
 	go func() {
