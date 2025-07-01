@@ -81,7 +81,7 @@ func (ha *KvHandler) isLinkedWith(ctx context.Context) (bool, string) {
 		ha.provider.Logger.Warn("Received request from unknown origin")
 		return false, ""
 	}
-	target := header.Get("target")
+	target := header.Get("source-id")
 	// Only allow requests from a linked component
 	if ha.linkedFrom[target] == nil {
 		ha.provider.Logger.Warn("Received request from unlinked target", "target", target)
