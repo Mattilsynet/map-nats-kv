@@ -25,9 +25,6 @@ type KvHandler struct {
 	configs    map[string]*config.Config
 }
 
-func stuff() {
-}
-
 func NewKvHandler(linkedFrom, linkedTo map[string]map[string]string) *KvHandler {
 	return &KvHandler{
 		linkedFrom: linkedFrom,
@@ -226,7 +223,7 @@ func (ha *KvHandler) RegisterComponentWatchAll(ctx__ context.Context, sourceId, 
 		ha.provider.Logger.Error("Failed to watch all", "sourceId", sourceId, "error", natsWatchAllErr)
 		return natsWatchAllErr
 	}
-	client := ha.provider.OutgoingRpcClient(sourceId)
+	client := ha.provider.OutgoingRpcClient(target)
 	// INFO: A little delay for the provider to wait for the component to be ready
 	time.Sleep(time.Duration(config.ComponentEstimatedStartupTime) * time.Second)
 	go func() {
