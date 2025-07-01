@@ -36,13 +36,13 @@ func NewKvHandler(linkedFrom, linkedTo map[string]map[string]string) *KvHandler 
 
 func (ha *KvHandler) RegisterComponent(sourceID string, target string, config *config.Config, secrets *secrets.Secrets) error {
 	url := config.NatsURL
-	nc, err := pkgnats.CreateNatsConnection(target, secrets.NatsCredentials, url)
+	nc, err := pkgnats.CreateNatsConnection(sourceID, secrets.NatsCredentials, url)
 	if err != nil {
 		ha.provider.Logger.Error("Failed to create (key-value) NATS connection", "sourceId", sourceID, "target", target, "error", err)
 		return err
 	}
-	ha.ncMap[target] = nc
-	ha.configs[target] = config
+	ha.ncMap[sourceID] = nc
+	ha.configs[sourceID] = config
 	return nil
 }
 
