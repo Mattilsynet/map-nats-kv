@@ -1,9 +1,10 @@
-package mattilsynet:map-kv@0.1.0;
+package mattilsynet:map-kv@0.2.0;
 
 interface types {
    record key-value-entry {
      key: string, 
      value: list<u8>,
+     op: string,
    }
 }
 interface key-value-watcher {
