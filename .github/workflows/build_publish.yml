@@ -2,7 +2,7 @@ name: build_push
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   wash-build:
@@ -10,8 +10,8 @@ jobs:
     env:
       providername: map-nats-kv
     permissions:
-      contents: 'write'
-      packages: 'write'
+      contents: "write"
+      packages: "write"
       attestations: write
       id-token: write
     steps:
@@ -20,12 +20,12 @@ jobs:
       - name: install go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.2'
+          go-version: "1.23.2"
       - name: install tinygo
         uses: acifani/setup-tinygo@v2
         with:
-          tinygo-version: '0.36.0'
-          install-binaryen: 'false'
+          tinygo-version: "0.36.0"
+          install-binaryen: "false"
       - name: install wash tools
         uses: taiki-e/install-action@v2
         with:
@@ -55,6 +55,8 @@ jobs:
       - name: wash build provider
         shell: bash
         run: |
+          # we sign with the same nkey everytime and provider will have access to its allocated secrets in secrets-nats-kv
+          export WASH_ISSUER_KEY = "${{ secrets.WASH_ISSUER_KEY }}"
           wash build
       - name: wash build test-component
         shell: bash
@@ -131,6 +133,5 @@ jobs:
           asset_path: ./${{ env.providername }}.tar.gz # Path to your file
           asset_name: ${{ env.providername }}
           asset_content_type: application/gzip
-
 #TODO: run wash up, wash apply and check output for success messages
 
