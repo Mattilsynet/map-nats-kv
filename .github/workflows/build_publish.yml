@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           # we sign with the same nkey everytime and provider will have access to its allocated secrets in secrets-nats-kv
-          export WASH_ISSUER_KEY = "${{ secrets.WASH_ISSUER_KEY }}"
+          export WASH_ISSUER_KEY="${{ secrets.WASH_ISSUER_KEY }}"
           wash build
       - name: wash build test-component
         shell: bash
